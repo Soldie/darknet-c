@@ -13,6 +13,9 @@
 #
 # 
 
+
+$(error Broken master branch-Use tag 5.0 instead) 
+
 GPU=1
 CUDNN=1
 OPENCV=0
