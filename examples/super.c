@@ -1,11 +1,4 @@
-#include "network.h"
-#include "cost_layer.h"
-#include "utils.h"
-#include "parser.h"
-
-#ifdef OPENCV
-#include "opencv2/highgui/highgui_c.h"
-#endif
+#include "darknet.h"
 
 void train_super(char *cfgfile, char *weightfile, int clear)
 {

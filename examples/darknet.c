@@ -1,19 +1,11 @@
+#include "darknet.h"
+
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "parser.h"
-#include "utils.h"
-#include "cuda.h"
-#include "blas.h"
-#include "connected_layer.h"
-
-#ifdef OPENCV
-#include "opencv2/highgui/highgui_c.h"
-#endif
-
 extern void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *filename, int top);
-extern void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, float hier_thresh);
+extern void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, float hier_thresh, char *outfile, int fullscreen);
 extern void run_voxel(int argc, char **argv);
 extern void run_yolo(int argc, char **argv);
 extern void run_detector(int argc, char **argv);
@@ -25,6 +17,7 @@ extern void run_dice(int argc, char **argv);
 extern void run_compare(int argc, char **argv);
 extern void run_classifier(int argc, char **argv);
 extern void run_regressor(int argc, char **argv);
+extern void run_segmenter(int argc, char **argv);
 extern void run_char_rnn(int argc, char **argv);
 extern void run_vid_rnn(int argc, char **argv);
 extern void run_tag(int argc, char **argv);
@@ -119,6 +112,26 @@ void operations(char *cfgfile)
             ops += 2l * l.n * l.size*l.size*l.c * l.out_h*l.out_w;
         } else if(l.type == CONNECTED){
             ops += 2l * l.inputs * l.outputs;
+        } else if (l.type == RNN){
+            ops += 2l * l.input_layer->inputs * l.input_layer->outputs;
+            ops += 2l * l.self_layer->inputs * l.self_layer->outputs;
+            ops += 2l * l.output_layer->inputs * l.output_layer->outputs;
+        } else if (l.type == GRU){
+            ops += 2l * l.uz->inputs * l.uz->outputs;
+            ops += 2l * l.uh->inputs * l.uh->outputs;
+            ops += 2l * l.ur->inputs * l.ur->outputs;
+            ops += 2l * l.wz->inputs * l.wz->outputs;
+            ops += 2l * l.wh->inputs * l.wh->outputs;
+            ops += 2l * l.wr->inputs * l.wr->outputs;
+        } else if (l.type == LSTM){
+            ops += 2l * l.uf->inputs * l.uf->outputs;
+            ops += 2l * l.ui->inputs * l.ui->outputs;
+            ops += 2l * l.ug->inputs * l.ug->outputs;
+            ops += 2l * l.uo->inputs * l.uo->outputs;
+            ops += 2l * l.wf->inputs * l.wf->outputs;
+            ops += 2l * l.wi->inputs * l.wi->outputs;
+            ops += 2l * l.wg->inputs * l.wg->outputs;
+            ops += 2l * l.wo->inputs * l.wo->outputs;
         }
     }
     printf("Floating Point Operations: %ld\n", ops);
@@ -175,7 +188,6 @@ void partial(char *cfgfile, char *weightfile, char *outfile, int max)
     save_weights_upto(net, outfile, max);
 }
 
-#include "convolutional_layer.h"
 void rescale_net(char *cfgfile, char *weightfile, char *outfile)
 {
     gpu_index = -1;
@@ -325,7 +337,7 @@ void denormalize_net(char *cfgfile, char *weightfile, char *outfile)
     int i;
     for (i = 0; i < net.n; ++i) {
         layer l = net.layers[i];
-        if (l.type == CONVOLUTIONAL && l.batch_normalize) {
+        if ((l.type == DECONVOLUTIONAL || l.type == CONVOLUTIONAL) && l.batch_normalize) {
             denormalize_convolutional_layer(l);
             net.layers[i].batch_normalize=0;
         }
@@ -350,6 +362,32 @@ void denormalize_net(char *cfgfile, char *weightfile, char *outfile)
         }
     }
     save_weights(net, outfile);
+}
+
+void mkimg(char *cfgfile, char *weightfile, int h, int w, int num, char *prefix)
+{
+    network net = load_network(cfgfile, weightfile, 0);
+    image *ims = get_weights(net.layers[0]);
+    int n = net.layers[0].n;
+    int z;
+    for(z = 0; z < num; ++z){
+        image im = make_image(h, w, 3);
+        fill_image(im, .5);
+        int i;
+        for(i = 0; i < 100; ++i){
+            image r = copy_image(ims[rand()%n]);
+            rotate_image_cw(r, rand()%4);
+            random_distort_image(r, 1, 1.5, 1.5);
+            int dx = rand()%(w-r.w);
+            int dy = rand()%(h-r.h);
+            ghost_image(r, im, dx, dy);
+            free_image(r);
+        }
+        char buff[256];
+        sprintf(buff, "%s/gen_%d", prefix, z);
+        save_image(im, buff);
+        free_image(im);
+    }
 }
 
 void visualize(char *cfgfile, char *weightfile)
@@ -401,7 +439,9 @@ int main(int argc, char **argv)
     } else if (0 == strcmp(argv[1], "detect")){
         float thresh = find_float_arg(argc, argv, "-thresh", .24);
         char *filename = (argc > 4) ? argv[4]: 0;
-        test_detector("cfg/coco.data", argv[2], argv[3], filename, thresh, .5);
+        char *outfile = find_char_arg(argc, argv, "-out", 0);
+        int fullscreen = find_arg(argc, argv, "-fullscreen");
+        test_detector("cfg/coco.data", argv[2], argv[3], filename, thresh, .5, outfile, fullscreen);
     } else if (0 == strcmp(argv[1], "cifar")){
         run_cifar(argc, argv);
     } else if (0 == strcmp(argv[1], "go")){
@@ -418,6 +458,8 @@ int main(int argc, char **argv)
         run_classifier(argc, argv);
     } else if (0 == strcmp(argv[1], "regressor")){
         run_regressor(argc, argv);
+    } else if (0 == strcmp(argv[1], "segmenter")){
+        run_segmenter(argc, argv);
     } else if (0 == strcmp(argv[1], "art")){
         run_art(argc, argv);
     } else if (0 == strcmp(argv[1], "tag")){
@@ -462,6 +504,8 @@ int main(int argc, char **argv)
         average(argc, argv);
     } else if (0 == strcmp(argv[1], "visualize")){
         visualize(argv[2], (argc > 3) ? argv[3] : 0);
+    } else if (0 == strcmp(argv[1], "mkimg")){
+        mkimg(argv[2], argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), argv[7]);
     } else if (0 == strcmp(argv[1], "imtest")){
         test_resize(argv[2]);
     } else {

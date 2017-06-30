@@ -1,13 +1,5 @@
-#include "network.h"
-#include "detection_layer.h"
-#include "cost_layer.h"
-#include "utils.h"
-#include "parser.h"
-#include "box.h"
-
-#ifdef OPENCV
-#include "opencv2/highgui/highgui_c.h"
-#endif
+#include "darknet.h"
+#include <sys/time.h>
 
 void train_swag(char *cfgfile, char *weightfile)
 {

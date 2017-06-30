@@ -1,16 +1,6 @@
-#include "network.h"
-#include "utils.h"
-#include "parser.h"
-#include "option_list.h"
-#include "blas.h"
-#include "data.h"
-#ifdef __linux__
-#include <unistd.h>
-#endif
+#include "darknet.h"
 
-#ifdef OPENCV
-#include "opencv2/highgui/highgui_c.h"
-#endif
+#include <unistd.h>
 
 int inverted = 1;
 int noi = 1;
@@ -127,7 +117,7 @@ data random_go_moves(moves m, int n)
 }
 
 
-void train_go(char *cfgfile, char *weightfile, int *gpus, int ngpus, int clear)
+void train_go(char *cfgfile, char *weightfile, char *filename, int *gpus, int ngpus, int clear)
 {
     int i;
     float avg_loss = -1;
@@ -152,8 +142,8 @@ void train_go(char *cfgfile, char *weightfile, int *gpus, int ngpus, int clear)
     char *backup_directory = "/home/pjreddie/backup/";
 
     char buff[256];
+    moves m = load_go_moves(filename);
 
-    moves m = load_go_moves("/home/pjreddie/backup/go.train");
     //moves m = load_go_moves("games.txt");
 
     int N = m.n;
@@ -180,7 +170,7 @@ void train_go(char *cfgfile, char *weightfile, int *gpus, int ngpus, int clear)
 
         if(avg_loss == -1) avg_loss = loss;
         avg_loss = avg_loss*.95 + loss*.05;
-        printf("%d, %.3f: %f, %f avg, %f rate, %lf seconds, %d images\n", get_current_batch(net), (float)(*net.seen)/N, loss, avg_loss, get_current_rate(net), sec(clock()-time), *net.seen);
+        printf("%ld, %.3f: %f, %f avg, %f rate, %lf seconds, %ld images\n", get_current_batch(net), (float)(*net.seen)/N, loss, avg_loss, get_current_rate(net), sec(clock()-time), *net.seen);
         if(*net.seen/N > epoch){
             epoch = *net.seen/N;
             char buff[256];
@@ -195,7 +185,7 @@ void train_go(char *cfgfile, char *weightfile, int *gpus, int ngpus, int clear)
         }
         if(get_current_batch(net)%10000 == 0){
             char buff[256];
-            sprintf(buff, "%s/%s_%d.backup",backup_directory,base,get_current_batch(net));
+            sprintf(buff, "%s/%s_%ld.backup",backup_directory,base,get_current_batch(net));
             save_weights(net, buff);
         }
     }
@@ -929,7 +919,7 @@ void run_go(int argc, char **argv)
     char *c2 = (argc > 5) ? argv[5] : 0;
     char *w2 = (argc > 6) ? argv[6] : 0;
     int multi = find_arg(argc, argv, "-multi");
-    if(0==strcmp(argv[2], "train")) train_go(cfg, weights, gpus, ngpus, clear);
+    if(0==strcmp(argv[2], "train")) train_go(cfg, weights, c2, gpus, ngpus, clear);
     else if(0==strcmp(argv[2], "valid")) valid_go(cfg, weights, multi, c2);
     else if(0==strcmp(argv[2], "self")) self_go(cfg, weights, c2, w2, multi);
     else if(0==strcmp(argv[2], "test")) test_go(cfg, weights, multi);

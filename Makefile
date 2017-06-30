@@ -15,7 +15,7 @@
 
 GPU=1
 CUDNN=1
-OPENCV=1
+OPENCV=0
 DEBUG=0
 CUDA_MEM_DEBUG=0
 
@@ -29,7 +29,7 @@ ARCH= -gencode arch=compute_30,code=sm_30 \
 
 # C Definitions
 
-VPATH=./src/
+VPATH=./src/:./examples
 EXEC=darknet
 OBJDIR=./obj/
 CC=gcc
@@ -46,7 +46,7 @@ NVCC=nvcc
 
 OPTS=-Ofast
 LDFLAGS= -lm -pthread 
-COMMON= 
+COMMON=-Iinclude 
 CFLAGS=-Wall -Wfatal-errors 
 
 
