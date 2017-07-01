@@ -569,6 +569,11 @@ typedef struct list{
     node *back;
 } list;
 
+
+#ifdef __cplusplus 
+extern "C" {
+#endif
+
 pthread_t load_data(load_args args);
 list *read_data_cfg(char *filename);
 list *read_cfg(char *filename);
@@ -586,9 +591,6 @@ void normalize_cpu(float *x, float *mean, float *variance, int batch, int filter
 int best_3d_shift_r(image a, image b, int min, int max);
 #ifdef GPU
 
-#ifdef __cplusplus 
-extern "C" {
-#endif
 void axpy_gpu(int N, float ALPHA, float * X, int INCX, float * Y, int INCY);
 void fill_gpu(int N, float ALPHA, float * X, int INCX);
 void scal_gpu(int N, float ALPHA, float * X, int INCX);
@@ -608,10 +610,6 @@ void update_network_gpu(network net);
 float train_networks(network *nets, int n, data d, int interval);
 void sync_nets(network *nets, int n, int interval);
 void harmless_update_network_gpu(network net);
-
-#ifdef __cplusplus 
-}
-#endif
 
 #endif
 void save_image_png(image im, const char *name);
@@ -748,5 +746,13 @@ void normalize_array(float *a, int n);
 int *read_intlist(char *s, int *n, int d);
 size_t rand_size_t();
 float rand_normal();
+
+#ifdef _ENABLE_CUDA_MEM_DEBUG
+void cuda_dump_mem_stat();
+#endif
+
+#ifdef __cplusplus 
+}
+#endif
 
 #endif

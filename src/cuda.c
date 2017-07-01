@@ -195,6 +195,7 @@ float *cuda_make_array(float *x, size_t n)
     printf("CUDA alloc/free cnts/size/reqsize = [%d], [%d], [%llu], [%lu]\n", cuda_make_array_cnt, cuda_free_cnt, cuda_make_array_size_float, n ); 
 #endif   
     cudaError_t status = cudaMalloc((void **)&x_gpu, size);
+    if(!x_gpu) error("Cuda malloc failed\n");    
     check_error(status);
     if(x){
         status = cudaMemcpy(x_gpu, x, size, cudaMemcpyHostToDevice);
@@ -203,19 +204,10 @@ float *cuda_make_array(float *x, size_t n)
         fill_gpu(n, 0, x_gpu, 1);
     }
 #ifdef _ENABLE_CUDA_MEM_DEBUG    
-    else
-    {
-        float* cptr = (float*) calloc(size, 1);
-        if(cptr) {
-            cudaMemcpy(x_gpu, cptr, size,cudaMemcpyHostToDevice);        
-            free(cptr);
-        }
-    }    
     cuda_make_array_cnt ++;
     cuda_make_array_size_float += n;
     printf("cuda_make_array allocated [%p] of [%lu]\n", x_gpu, size);
 #endif    
-    if(!x_gpu) error("Cuda malloc failed\n");
     return x_gpu;
 }
 

@@ -454,7 +454,7 @@ void train_dcgan(char *cfg, char *weight, char *acfg, char *aweight, int clear, 
 
     int start = 0;
     int i, j, k;
-    layer imlayer = {0};
+    layer imlayer = {};
     for (i = 0; i < gnet.n; ++i) {
         if (gnet.layers[i].out_c == 3) {
             imlayer = gnet.layers[i];
