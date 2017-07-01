@@ -14,7 +14,7 @@
 layer make_connected_layer(int batch, int inputs, int outputs, ACTIVATION activation, int batch_normalize, int adam)
 {
     int i;
-    layer l = {0};
+    layer l = {};
     l.learning_rate_scale = 1;
     l.type = CONNECTED;
 
@@ -53,12 +53,12 @@ layer make_connected_layer(int batch, int inputs, int outputs, ACTIVATION activa
     }
 
     if(adam){
-        l.m = calloc(l.inputs*l.outputs, sizeof(float));
-        l.v = calloc(l.inputs*l.outputs, sizeof(float));
-        l.bias_m = calloc(l.outputs, sizeof(float));
-        l.scale_m = calloc(l.outputs, sizeof(float));
-        l.bias_v = calloc(l.outputs, sizeof(float));
-        l.scale_v = calloc(l.outputs, sizeof(float));
+        l.m = (float*)calloc(l.inputs*l.outputs, sizeof(float));
+        l.v = (float*)calloc(l.inputs*l.outputs, sizeof(float));
+        l.bias_m = (float*)calloc(l.outputs, sizeof(float));
+        l.scale_m = (float*)calloc(l.outputs, sizeof(float));
+        l.bias_v = (float*)calloc(l.outputs, sizeof(float));
+        l.scale_v = (float*)calloc(l.outputs, sizeof(float));
     }
     if(batch_normalize){
         l.scales = (float*)calloc(outputs, sizeof(float));
