@@ -80,12 +80,12 @@ layer make_deconvolutional_layer(int batch, int h, int w, int c, int n, int size
         l.x_norm = (float*)calloc(l.batch*l.outputs, sizeof(float));
     }
     if(adam){
-        l.m = calloc(c*n*size*size, sizeof(float));
-        l.v = calloc(c*n*size*size, sizeof(float));
-        l.bias_m = calloc(n, sizeof(float));
-        l.scale_m = calloc(n, sizeof(float));
-        l.bias_v = calloc(n, sizeof(float));
-        l.scale_v = calloc(n, sizeof(float));
+        l.m = (float*)calloc(c*n*size*size, sizeof(float));
+        l.v = (float*)calloc(c*n*size*size, sizeof(float));
+        l.bias_m = (float*)calloc(n, sizeof(float));
+        l.scale_m = (float*)calloc(n, sizeof(float));
+        l.bias_v = (float*)calloc(n, sizeof(float));
+        l.scale_v = (float*)calloc(n, sizeof(float));
     }
 
 #ifdef GPU

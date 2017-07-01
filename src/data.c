@@ -636,13 +636,13 @@ data load_data_seg(int n, char **paths, int m, int w, int h, int classes, int mi
     d.shallow = 0;
 
     d.X.rows = n;
-    d.X.vals = calloc(d.X.rows, sizeof(float*));
+    d.X.vals = (float**)calloc(d.X.rows, sizeof(float*));
     d.X.cols = h*w*3;
 
 
     d.y.rows = n;
     d.y.cols = h*w*classes/div/div;
-    d.y.vals = calloc(d.X.rows, sizeof(float*));
+    d.y.vals = (float**)calloc(d.X.rows, sizeof(float*));
 
     for(i = 0; i < n; ++i){
         image orig = load_image_color(random_paths[i], 0, 0);
@@ -684,13 +684,13 @@ data load_data_iseg(int n, char **paths, int m, int w, int h, int classes, int m
     d.shallow = 0;
 
     d.X.rows = n;
-    d.X.vals = calloc(d.X.rows, sizeof(float*));
+    d.X.vals = (float**)calloc(d.X.rows, sizeof(float*));
     d.X.cols = h*w*3;
 
 
     d.y.rows = n;
     d.y.cols = h*w*classes/div/div;
-    d.y.vals = calloc(d.X.rows, sizeof(float*));
+    d.y.vals = (float**)calloc(d.X.rows, sizeof(float*));
 
     for(i = 0; i < n; ++i){
         image orig = load_image_color(random_paths[i], 0, 0);
@@ -1031,7 +1031,7 @@ void *load_threads(void *ptr)
 
 void load_data_blocking(load_args args)
 {
-    struct load_args *ptr = calloc(1, sizeof(struct load_args));
+    struct load_args *ptr = (struct load_args *)calloc(1, sizeof(struct load_args));
     *ptr = args;
     load_thread(ptr);
 }

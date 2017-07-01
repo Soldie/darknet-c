@@ -585,6 +585,10 @@ void normalize_cpu(float *x, float *mean, float *variance, int batch, int filter
 
 int best_3d_shift_r(image a, image b, int min, int max);
 #ifdef GPU
+
+#ifdef __cplusplus 
+extern "C" {
+#endif
 void axpy_gpu(int N, float ALPHA, float * X, int INCX, float * Y, int INCY);
 void fill_gpu(int N, float ALPHA, float * X, int INCX);
 void scal_gpu(int N, float ALPHA, float * X, int INCX);
@@ -604,6 +608,11 @@ void update_network_gpu(network net);
 float train_networks(network *nets, int n, data d, int interval);
 void sync_nets(network *nets, int n, int interval);
 void harmless_update_network_gpu(network net);
+
+#ifdef __cplusplus 
+}
+#endif
+
 #endif
 void save_image_png(image im, const char *name);
 void get_next_batch(data d, int n, int offset, float *X, float *y);

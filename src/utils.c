@@ -29,13 +29,13 @@ int *read_intlist(char *gpu_list, int *ngpus, int d)
         for(i = 0; i < len; ++i){
             if (gpu_list[i] == ',') ++*ngpus;
         }
-        gpus = calloc(*ngpus, sizeof(int));
+        gpus = (int*)calloc(*ngpus, sizeof(int));
         for(i = 0; i < *ngpus; ++i){
             gpus[i] = atoi(gpu_list);
             gpu_list = strchr(gpu_list, ',')+1;
         }
     } else {
-        gpus = calloc(1, sizeof(float));
+        gpus = (int*)calloc(1, sizeof(int));
         *gpus = d;
         *ngpus = 1;
     }

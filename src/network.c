@@ -61,7 +61,7 @@ network load_network(char *cfg, char *weights, int clear)
 
 network *load_network_p(char *cfg, char *weights, int clear)
 {
-    network *net = calloc(1, sizeof(network));
+    network *net = (network*)calloc(1, sizeof(network));
     *net = load_network(cfg, weights, clear);
     return net;
 }
@@ -378,8 +378,8 @@ int resize_network(network *net, int w, int h)
     net->output = out.output;
     free(net->input);
     free(net->truth);
-    net->input = calloc(net->inputs*net->batch, sizeof(float));
-    net->truth = calloc(net->truths*net->batch, sizeof(float));
+    net->input = (float*)calloc(net->inputs*net->batch, sizeof(float));
+    net->truth = (float*)calloc(net->truths*net->batch, sizeof(float));
 #ifdef GPU
     if(gpu_index >= 0){
         cuda_free(net->input_gpu);

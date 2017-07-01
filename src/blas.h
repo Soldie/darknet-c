@@ -1,10 +1,11 @@
 #ifndef BLAS_H
 #define BLAS_H
+
+#include "darknet.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "darknet.h"
 
 void flatten(float *x, int size, int layers, int batch, int forward);
 
@@ -54,11 +55,12 @@ void softmax_cpu(float *input, int n, int batch, int batch_offset, int groups, i
 #ifdef GPU
 #include "cuda.h"
 
+#include "tree.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "tree.h"
 
 void axpy_gpu_offset(int N, float ALPHA, float * X, int OFFX, int INCX, float * Y, int OFFY, int INCY);
 void copy_gpu_offset(int N, float * X, int OFFX, int INCX, float * Y, int OFFY, int INCY);
