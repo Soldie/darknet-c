@@ -471,26 +471,29 @@ void forward_region_layer_gpu(const layer l, network net)
         printf("%d %d %d \n", l.softmax_tree->groups, mmin, mmax);
         int index = entry_index(l, 0, 0, l.coords + 1);
         softmax_tree(net.input_gpu + index, l.w*l.h, l.batch*l.n, l.inputs/l.n, 1, l.output_gpu + index, *l.softmax_tree);
-        /*
+        
+#if 0        
         // TIMING CODE
-        int zz;
+        int zz;        
         int number = 1000;
-        int count = 0;
-        int i;
-        for (i = 0; i < l.softmax_tree->groups; ++i) {
-            int group_size = l.softmax_tree->group_size[i];
-            count += group_size;
-        }
-        printf("%d %d\n", l.softmax_tree->groups, count);
+        int count = 0;        
         {
-            double then = what_time_is_it_now();
-            for(zz = 0; zz < number; ++zz){
-                int index = entry_index(l, 0, 0, 5);
-                softmax_tree(net.input_gpu + index, l.w*l.h, l.batch*l.n, l.inputs/l.n, 1, l.output_gpu + index, *l.softmax_tree);
+            int i;
+            for (i = 0; i < l.softmax_tree->groups; ++i) {
+                int group_size = l.softmax_tree->group_size[i];
+                count += group_size;
             }
-            cudaDeviceSynchronize();
-            printf("Good GPU Timing: %f\n", what_time_is_it_now() - then);
-        } 
+            printf("%d %d\n", l.softmax_tree->groups, count);
+            {
+                double then = what_time_is_it_now();
+                for(zz = 0; zz < number; ++zz){
+                    int index = entry_index(l, 0, 0, 5);
+                    softmax_tree(net.input_gpu + index, l.w*l.h, l.batch*l.n, l.inputs/l.n, 1, l.output_gpu + index, *l.softmax_tree);
+                }
+                cudaDeviceSynchronize();
+                printf("Good GPU Timing: %f\n", what_time_is_it_now() - then);
+            } 
+        }
         {
             double then = what_time_is_it_now();
             for(zz = 0; zz < number; ++zz){
@@ -520,7 +523,7 @@ void forward_region_layer_gpu(const layer l, network net)
             cudaDeviceSynchronize();
             printf("CPU Timing: %f\n", what_time_is_it_now() - then);
         }
-        */
+#endif
         /*
            int i;
            int count = 5;
