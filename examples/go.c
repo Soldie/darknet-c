@@ -3,6 +3,9 @@
 #include <assert.h>
 #include <math.h>
 #include <unistd.h>
+#ifdef __linux
+#include <sys/select.h>
+#endif
 
 int inverted = 1;
 int noi = 1;

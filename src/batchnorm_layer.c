@@ -197,6 +197,7 @@ void forward_batchnorm_layer_gpu(layer l, network net)
 #ifdef CUDNN
         float one = 1;
         float zero = 0;
+#if CUDNN_MAJOR >= 6
         cudnnBatchNormalizationForwardTraining(cudnn_handle(),
                 CUDNN_BATCHNORM_SPATIAL,
                 &one,
@@ -215,6 +216,9 @@ void forward_batchnorm_layer_gpu(layer l, network net)
                 l.mean_gpu,
                 l.variance_gpu);
 #else
+        // Use for inference only - Add error
+#endif //#if CUDNN_MAJOR >= 6
+#else
         fast_mean_gpu(l.output_gpu, l.batch, l.out_c, l.out_h*l.out_w, l.mean_gpu);
         fast_variance_gpu(l.output_gpu, l.mean_gpu, l.batch, l.out_c, l.out_h*l.out_w, l.variance_gpu);
 
@@ -232,9 +236,10 @@ void forward_batchnorm_layer_gpu(layer l, network net)
 #endif
     } else {
 
-#ifdef CUDNN
+#if defined(CUDNN) && (CUDNN_MAJOR >= 6)
         float one = 1;
         float zero = 0;
+
         cudnnBatchNormalizationForwardInference(cudnn_handle(),
             CUDNN_BATCHNORM_SPATIAL,
             &one,
@@ -249,7 +254,6 @@ void forward_batchnorm_layer_gpu(layer l, network net)
             l.rolling_mean_gpu,
             l.rolling_variance_gpu,
             .00001);
-
 #else
         normalize_gpu(l.output_gpu, l.rolling_mean_gpu, l.rolling_variance_gpu, l.batch, l.out_c, l.out_h*l.out_w);
         scale_bias_gpu(l.output_gpu, l.scales_gpu, l.batch, l.out_c, l.out_h*l.out_w);
@@ -268,6 +272,7 @@ void backward_batchnorm_layer_gpu(layer l, network net)
 #ifdef CUDNN
     float one = 1;
     float zero = 0;
+#if (CUDNN_MAJOR >= 6)
     cudnnBatchNormalizationBackward(cudnn_handle(),
             CUDNN_BATCHNORM_SPATIAL,
             &one,
@@ -287,6 +292,7 @@ void backward_batchnorm_layer_gpu(layer l, network net)
             .00001,
             l.mean_gpu,
             l.variance_gpu);
+#endif // #if (CUDNN_MAJOR >= 6)
     copy_gpu(l.outputs*l.batch, l.x_norm_gpu, 1, l.delta_gpu, 1);
 #else
     backward_bias_gpu(l.bias_updates_gpu, l.delta_gpu, l.batch, l.out_c, l.out_w*l.out_h);
