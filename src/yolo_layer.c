@@ -335,6 +335,7 @@ int get_yolo_detections(layer l, int w, int h, int netw, int neth, float thresh,
                 float prob = objectness*predictions[class_index];
                 dets[count].prob[j] = (prob > thresh) ? prob : 0;
             }
+            printf("count = [%d]\t", count);
             ++count;
         }
     }

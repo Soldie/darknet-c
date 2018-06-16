@@ -534,7 +534,9 @@ detection *make_network_boxes(network *net, float thresh, int *num)
     layer l = net->layers[net->n - 1];
     int i;
     int nboxes = num_detections(net, thresh);
-    if(num) *num = nboxes;
+    if(num) *num = nboxes; else return NULL;
+    if(0 == nboxes) return NULL;
+
     detection *dets = (detection *)calloc(nboxes, sizeof(detection));
     for(i = 0; i < nboxes; ++i){
         dets[i].prob = (float*)calloc(l.classes, sizeof(float));
@@ -568,6 +570,8 @@ void fill_network_boxes(network *net, int w, int h, float thresh, float hier, in
 detection *get_network_boxes(network *net, int w, int h, float thresh, float hier, int *map, int relative, int *num)
 {
     detection *dets = make_network_boxes(net, thresh, num);
+    printf("Detections = %d\n", *num);
+    if(0 == *num || NULL == dets) return NULL;
     fill_network_boxes(net, w, h, thresh, hier, map, relative, dets);
     return dets;
 }
