@@ -59,6 +59,7 @@ COMMON=
 CFLAGS=-Wall -Wfatal-errors 
 ifeq ($(UNAME_P), armv7l)
 CFLAGS=-Wall -Wno-unused-result -Wno-unknown-pragmas -Wfatal-errors -fPIC -std=c99 -D_POSIX_C_SOURCE=199309L -D_DEFAULT_SOURCE
+CFLAGS_CPP=-Wall -Wno-unused-result -Wno-unknown-pragmas -Wfatal-errors -fPIC -Wno-write-strings -D_POSIX_C_SOURCE=199309L -D_DEFAULT_SOURCE
 endif
 
 ifeq ($(DEBUG), 1) 
@@ -121,9 +122,9 @@ $(OBJDIR)%.o: %.c $(DEPS)
 	$(CC) $(COMMON) $(CFLAGS) -c $< -o $@
 
 $(EXEC_CPP): obj-cpp clean-cpp $(OBJS_CPP)
-	$(CC_CPP) $(COMMON) $(CFLAGS) $(OBJS_CPP) -o $@ $(LDFLAGS)
+	$(CC_CPP) $(COMMON) $(CFLAGS_CPP) $(OBJS_CPP) -o $@ $(LDFLAGS)
 $(SHARED_CPP): obj-shared-cpp clean-cpp $(OBJS_CPP_SHARED)
-	$(CC_CPP) $(COMMON) $(CFLAGS) $(OBJS_CPP_SHARED) -o lib$@.so $(LDFLAGS) -shared	
+	$(CC_CPP) $(COMMON) $(CFLAGS_CPP) $(OBJS_CPP_SHARED) -o lib$@.so $(LDFLAGS) -shared	
 
 $(OBJDIR_CPP)%.o: %.c $(DEPS)
 	$(CC_CPP) $(COMMON) $(CFLAGS_CPP) -c $< -o $@
@@ -134,9 +135,9 @@ $(OBJDIR)%.o: %.cu $(DEPS)
 	$(NVCC) $(ARCH) $(COMMON) --compiler-options "$(CFLAGS)" -c $< -o $@
 
 $(OBJDIR_CPP)%.o: %.cu $(DEPS)
-	$(NVCC) $(ARCH) $(COMMON) --compiler-options "$(CFLAGS)" -c $< -o $@
+	$(NVCC) $(ARCH) $(COMMON) --compiler-options "$(CFLAGS_CPP)" -c $< -o $@
 $(OBJDIR_CPP_SHARED)%.o: %.cu $(DEPS)
-	$(NVCC) $(ARCH) $(COMMON) --compiler-options "$(CFLAGS) -fPIC" -c $< -o $@
+	$(NVCC) $(ARCH) $(COMMON) --compiler-options "$(CFLAGS_CPP) -fPIC" -c $< -o $@
 
 	
 obj:
