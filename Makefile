@@ -15,14 +15,24 @@
 
 GPU=1
 CUDNN=1
-OPENCV=1
+OPENCV=0
 DEBUG=0
 CUDA_MEM_DEBUG=0
+
+UNAME_P := $(shell uname -p)
+ifeq ($(UNAME_P), armv7l)
+ARCH= -gencode arch=compute_32,code=sm_32
+endif
 
 ARCH= -gencode arch=compute_30,code=sm_30 \
       -gencode arch=compute_35,code=sm_35 \
       -gencode arch=compute_50,code=[sm_50,compute_50] \
       -gencode arch=compute_52,code=[sm_52,compute_52]
+
+UNAME_P := $(shell uname -p)
+ifeq ($(UNAME_P), armv7l)
+ARCH= -gencode arch=compute_32,code=sm_32
+endif
 
 # This is what I use, uncomment if you know your arch and want to specify
 # ARCH=  -gencode arch=compute_52,code=compute_52
@@ -40,15 +50,16 @@ SHARED_CPP=darknet-cpp-shared
 OBJDIR_CPP=./obj-cpp/
 OBJDIR_CPP_SHARED=./obj-cpp-shared/
 CC_CPP=g++
-CFLAGS_CPP=-Wno-write-strings -std=c++0x
-
+CFLAGS_CPP=-Wall -Wno-unused-result -Wno-unknown-pragmas -Wfatal-errors -fPIC -Wno-write-strings -std=c++0x
 NVCC=nvcc
 
 OPTS=-Ofast
 LDFLAGS= -lm -pthread 
 COMMON= 
 CFLAGS=-Wall -Wfatal-errors 
-
+ifeq ($(UNAME_P), armv7l)
+CFLAGS=-Wall -Wno-unused-result -Wno-unknown-pragmas -Wfatal-errors -fPIC -std=c99 -D_POSIX_C_SOURCE=199309L -D_DEFAULT_SOURCE
+endif
 
 ifeq ($(DEBUG), 1) 
 OPTS=-O0 -g
@@ -69,7 +80,11 @@ LDFLAGS += -L./3rdparty
 ifeq ($(GPU), 1) 
 COMMON+= -DGPU -I/usr/local/cuda/include/
 CFLAGS+= -DGPU
+ifeq ($(UNAME_P), armv7l)
+LDFLAGS+= -L/usr/local/cuda/lib -lcuda -lcudart -lcublas -lcurand
+else
 LDFLAGS+= -L/usr/local/cuda/lib64 -lcuda -lcudart -lcublas -lcurand
+endif
 endif
 
 ifeq ($(CUDNN), 1) 
@@ -111,9 +126,9 @@ $(SHARED_CPP): obj-shared-cpp clean-cpp $(OBJS_CPP_SHARED)
 	$(CC_CPP) $(COMMON) $(CFLAGS) $(OBJS_CPP_SHARED) -o lib$@.so $(LDFLAGS) -shared	
 
 $(OBJDIR_CPP)%.o: %.c $(DEPS)
-	$(CC_CPP) $(COMMON) $(CFLAGS_CPP) $(CFLAGS) -c $< -o $@
+	$(CC_CPP) $(COMMON) $(CFLAGS_CPP) -c $< -o $@
 $(OBJDIR_CPP_SHARED)%.o: %.c $(DEPS)
-	$(CC_CPP) $(COMMON) $(CFLAGS_CPP) $(CFLAGS) -fPIC -c $< -o $@
+	$(CC_CPP) $(COMMON) $(CFLAGS_CPP) -fPIC -c $< -o $@
 
 $(OBJDIR)%.o: %.cu $(DEPS)
 	$(NVCC) $(ARCH) $(COMMON) --compiler-options "$(CFLAGS)" -c $< -o $@

@@ -201,6 +201,7 @@ void forward_batchnorm_layer_gpu(layer l, network_state state)
         copy_ongpu(l.outputs*l.batch, l.output_gpu, 1, l.x_gpu, 1);
         float one = 1;
         float zero = 0;
+#if CUDNN_MAJOR >= 6
         cudnnBatchNormalizationForwardTraining(cudnn_handle(),
                     CUDNN_BATCHNORM_SPATIAL,
                     &one,
@@ -218,6 +219,7 @@ void forward_batchnorm_layer_gpu(layer l, network_state state)
                     .00001,
                     l.mean_gpu,
                     l.variance_gpu);
+#endif
 #else
         fast_mean_gpu(l.output_gpu, l.batch, l.out_c, l.out_h*l.out_w, l.mean_gpu);
         fast_variance_gpu(l.output_gpu, l.mean_gpu, l.batch, l.out_c, l.out_h*l.out_w, l.variance_gpu);
@@ -245,6 +247,7 @@ void forward_batchnorm_layer_gpu(layer l, network_state state)
 void backward_batchnorm_layer_gpu(const layer l, network_state state)
 {
 #ifdef CUDNN
+#if CUDNN_MAJOR >= 6
     float one = 1;
     float zero = 0;
     cudnnBatchNormalizationBackward(cudnn_handle(),
@@ -267,6 +270,7 @@ void backward_batchnorm_layer_gpu(const layer l, network_state state)
             l.mean_gpu,
             l.variance_gpu);
     copy_ongpu(l.outputs*l.batch, l.x_norm_gpu, 1, l.delta_gpu, 1);
+#endif
 #else
     backward_bias_gpu(l.bias_updates_gpu, l.delta_gpu, l.batch, l.out_c, l.out_w*l.out_h);
     backward_scale_gpu(l.x_norm_gpu, l.delta_gpu, l.batch, l.out_c, l.out_w*l.out_h, l.scale_updates_gpu);

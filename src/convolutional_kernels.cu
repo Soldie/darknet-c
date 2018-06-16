@@ -184,6 +184,7 @@ void backward_convolutional_layer_gpu(convolutional_layer l, network_state state
 
     if(l.xnor) state.input = l.binary_input_gpu;
 #ifdef CUDNN
+#if CUDNN_MAJOR >= 6
     float one = 1;
     cudnnConvolutionBackwardFilter(cudnn_handle(),
             &one,
@@ -217,7 +218,7 @@ void backward_convolutional_layer_gpu(convolutional_layer l, network_state state
         if(l.binary || l.xnor) swap_binary(&l);
         if(l.xnor) gradient_array_ongpu(original_input, l.batch*l.c*l.h*l.w, HARDTAN, state.delta);
     }
-
+#endif 
 #else
     int m = l.n;
     int n = l.size*l.size*l.c;
